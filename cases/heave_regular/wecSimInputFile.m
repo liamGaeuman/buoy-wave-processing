@@ -9,17 +9,16 @@ simu.dt = 0.001;
 
 %% Wave Information
 waves = waveClass('regular');
-waves.height = 0.4;
-waves.period = 8.0;
+waves.height = 0.2;
+waves.period = 2.5;
 
 %% Body Data
 body(1) = bodyClass('hydroData/Buoy.h5');
-body(1).geometryFile = 'geometry/Buoy-water-line.STL';
+body(1).geometryFile = 'geometry/Buoy-CoM-line.STL';
 
 body(1).mass = 'equilibrium';
 body(1).inertia = [0.254 0.254 0.335];
-body(1).centerGravity = [0 0 0.097];
 
 %% Constraint Data
 constraint(1) = constraintClass('Heave_Joint');
-constraint(1).location = [0 0 0.097];
+constraint(1).location = [0 0 0];
