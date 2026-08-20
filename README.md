@@ -20,12 +20,14 @@ buoy-wave-processing/
 │   ├── heave_regular/
 │   ├── free_regular/
 │   └── free_jonswap/
-├── analysis/
 ├── tools/
+│   └── collectWaveData.m
+├── processing/
 └── data/
+    └── raw/
 ```
 
-Case folders should contain only the files that differ between simulations when possible. Shared geometry, Simulink models, and hydrodynamic data should not be duplicated between cases.
+Case folders contain the WEC-Sim simulation configurations. Shared geometry, Simulink models, and hydrodynamic data are not duplicated between cases.
 
 ## Simulation
 
@@ -80,7 +82,7 @@ BEMIO converts the Capytaine NetCDF output to the HDF5 format used by WEC-Sim:
 Buoy.nc → BEMIO → Buoy.h5
 ```
 
-In the current workflow, BEMIO does not recover the center of gravity (`cg`), center of buoyancy (`cb`), or displaced volume (`Vo`) from the Capytaine NetCDF file. These values are therefore inserted into the BEMIO structure before writing `Buoy.h5`:
+In this workflow, the center of gravity (`cg`), center of buoyancy (`cb`), and displaced volume (`Vo`) were manually added to the BEMIO structure before writing `Buoy.h5`:
 
 ```matlab
 hydro = readCAPYTAINE(hydro, 'Buoy.nc');
@@ -96,7 +98,7 @@ hydro.cb = [
 hydro.Vo = 0.011613026209917577;
 ```
 
-After the radiation and excitation impulse-response functions are generated, the WEC-Sim hydrodynamic file is written with:
+After generating the required hydrodynamic data, the WEC-Sim hydrodynamic file is written with:
 
 ```matlab
 writeBEMIOH5(hydro);
@@ -110,7 +112,7 @@ See the [WEC-Sim documentation](https://wec-sim.github.io/WEC-Sim/dev/user/index
 
 Each case uses:
 
-- a WEC-Sim input file defining the simulation and wave conditions;
+- a WEC-Sim input file defining the simulation configuration and wave environment;
 - a Simulink model defining the allowed body motion;
 - `Buoy.h5` for hydrodynamic data; and
 - `Buoy-CoM-line.STL` for the WEC-Sim body geometry.
@@ -127,7 +129,7 @@ The buoy is constrained to vertical translation. The other degrees of freedom ar
 
 The buoy uses a floating 6-DOF constraint and is free to translate and rotate.
 
-Different wave conditions, such as regular waves and JONSWAP irregular waves, can use the same free-body Simulink model. These differences belong in the WEC-Sim input file rather than separate copies of the Simulink model.
+Different wave conditions use the same Simulink model within their respective simulation type. These differences are controlled through the WEC-Sim input files and data collection script rather than separate Simulink models.
 
 #### Geometry and Coordinate Conventions
 
@@ -181,11 +183,25 @@ The body center of gravity does not need to be manually specified in the WEC-Sim
 wecSim
 ```
 
+#### Automated Data Collection
+
+Synthetic datasets are generated using:
+
+```text
+tools/collectWaveData.m
+```
+
+The script runs the WEC-Sim cases over multiple wave conditions and saves the resulting raw simulation outputs to:
+
+```text
+data/raw/
+```
+
 #### Visualization
 
 The simulation can be viewed directly in Simscape Multibody Explorer. Because the buoy is small relative to the default environment, it may initially appear very small.
 
-Use the **Zoom** or **Zoom to Region** tools in Multibody Explorer to focus on the buoy. With a mouse, zooming can also be performed by holding `Ctrl`, holding the scroll wheel, and moving the mouse up or down. Press `Space` to return to a fit-to-view camera position.
+Use the zoom tools in Multibody Explorer to focus on the buoy.
 
 WEC-Sim can also generate an animation showing the buoy together with the simulated wave surface.
 
@@ -203,9 +219,9 @@ output.saveViz(simu, body, waves, ...
 [xmin xmax ymin ymax zmin zmax]
 ```
 
-For a small buoy, relatively tight axis limits are useful so that the body remains visible.
+For a small buoy, tighter axis limits are useful so that the body remains visible.
 
-`timesPerFrame` controls how many simulation time steps are skipped between animation frames. Increasing it makes visualization generation faster but reduces the temporal resolution of the animation.
+`timesPerFrame` controls how many simulation time steps are skipped between animation frames.
 
 The same command works with regular and irregular wave cases, including JONSWAP waves.
 

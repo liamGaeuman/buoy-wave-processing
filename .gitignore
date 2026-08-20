@@ -8,3 +8,8 @@ slprj/
 *.asv
 *.autosave
 *~
+
+# Python environments
+.venv/
+venv/
+env/.ipynb_checkpoints/
